@@ -1,0 +1,92 @@
+html, body, div, header, section, a {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    vertical-align: baseline;
+    }
+header, section {
+    display: block;
+    }
+body {
+    padding: 0 0 30px;
+    background: #f6f6f6 url('../images/body-bg.png') 50% 0;
+    line-height: 1.6;
+    font-size: 16px;
+    font-family: Georgia, "Times New Roman", Serif;
+    }
+a {
+    color: #075b12;
+    border-bottom: 1px solid #075b12;
+    text-decoration: none;
+    }
+a:hover {
+    color: #077b00;
+    }
+
+header {
+    margin: 20px 0;
+    padding: 0 10px;
+    text-align: center;
+    color: #ccc;
+    text-shadow: 1px 1px 0 #fff;
+    }
+
+section {
+    margin: 40px 0 0;
+    }
+
+#workplace {
+    margin: auto;
+    box-shadow: 0 0 0 10px #ddd, 0 0 0 20px #f4f4f4, 0 0 40px 10px rgba(0, 0, 0, .2);
+
+    font-size: 0;
+    line-height: 0;
+    }
+
+    #workplace div {
+        width: 24px;
+        height: 24px;
+        display: inline-block;
+
+        border: 3px solid #fff;
+        border-bottom-color: #ccc;
+        border-right-color: #ccc;
+        background: #e5e5e5;
+        box-shadow: inset 0 0 1px #d5d5d5;
+
+        font-size: 10px;
+        line-height: 30px;
+        text-align: center;
+
+        cursor: pointer;
+        vertical-align: top;
+        }
+
+    #workplace [data-type="mine"] {
+        background: #e5e5e5 url("../images/mines.png") no-repeat 50px 50px;
+        }
+
+    #workplace .flagged {
+        width: 24px;
+        height: 24px;
+        background: #e5e5e5 url("../images/flag.png") no-repeat 50%;
+        }
+
+    #workplace .opened {
+        width: 30px;
+        height: 30px;
+
+        border: 0;
+        background: #f4f4f4;
+
+        cursor: default;
+        }
+
+    #workplace .opened[data-type="mine"] {
+        background: rgba(190, 0, 0, .1) url("../images/mines.png") no-repeat 50%;
+        }
+    #workplace .flagged.opened[data-type="mine"] {
+        background: #e5e5e5 url("../images/flag.png") no-repeat 50%;
+        }
