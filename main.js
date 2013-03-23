@@ -272,12 +272,3 @@ var Minesweeper = (function() {
 
 	return ms;
 }());
-
-
-var
-	width = 10,
-	height = 10,
-	boxSizePx = 30,
-
-	// Let's go
-	minesweeper = new Minesweeper([width, height], boxSizePx);
