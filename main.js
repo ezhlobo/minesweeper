@@ -37,7 +37,6 @@ var Minesweeper = (function() {
 			},
 			start: function() {
 				this.makePlace();
-				this.layMines();
 				this.addControlers();
 			}
 		},
@@ -102,12 +101,16 @@ var Minesweeper = (function() {
 		workplace.innerHTML = html;
 	};
 
-	ms.prototype.layMines = function() {
+	ms.prototype.layMines = function( notMines ) {
 		var countOfMines = Math.ceil(this.max * 0.1);
 		var array = [];
 
 		while ( array.length < countOfMines ) {
-			fn.includeUnique(array, Math.floor(Math.random() * this.max) + 1);
+			var id = Math.floor(Math.random() * this.max) + 1;
+
+			if ( notMines.indexOf(id) === -1 ) {
+				fn.includeUnique(array, id);
+			}
 		}
 
 		for ( var i = 0, l = array.length; i < l; i++ ) {
@@ -195,9 +198,15 @@ var Minesweeper = (function() {
 
 	ms.prototype.addControlers = function() {
 		var that = this,
+			firstClick = true,
 			openBox = function( e ) {
 				var elem = e.target,
 					id = parseInt(elem.dataset[numberKey]);
+
+				if ( firstClick ) {
+					that.layMines([].concat(fn.getNeighbors(id), id));
+					firstClick = false;
+				}
 
 				if ( elem.classList.contains(cssClass.flagged) ) {
 					return;
