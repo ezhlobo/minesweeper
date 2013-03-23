@@ -2,13 +2,20 @@
  * Minesweeper
  * @class
  */
-var Minesweeper = (function() {
+var Minesweeper = (function( document ) {
 
 	var
+
+		/**
+		 * Start game
+		 * @param {Array}  coords    Width and height
+		 * @param {Number} smallSize Size one box
+		 */
 		initialize = function( coords, smallSize ) {
 			cols = this.cols = coords[0];
 			this.rows = coords[1];
 			this.max = this.cols * this.rows;
+			// Count of opened or flagged boxes
 			this.count = 0;
 			this.smallSize = smallSize;
 			this.firstClick = true;
@@ -16,11 +23,18 @@ var Minesweeper = (function() {
 			this.start();
 		},
 
+		/**
+		 * @constructor
+		 * @param {Array}  coords    Width and height
+		 * @param {Number} smallSize Size one box
+		 */
 		ms = function( coords, smallSize ) {
 			initialize.call(this, coords, smallSize);
 		},
 
+		/** @private */
 		cols = 0,
+
 		coordsRow = "row",
 		typeKey = "type",
 		typeMine = "mine",
@@ -32,26 +46,43 @@ var Minesweeper = (function() {
 
 		workplace = document.getElementById("workplace"),
 
+		/** Game actions */
 		action = ms.prototype.action = {
+
+			/** User lost */
 			gameOver: function() {
 				alert("Game Over!");
 				fn.cleanWorkplaceNode();
 			},
+
+			/** User won */
 			win: function() {
 				alert("You win!");
 				fn.cleanWorkplaceNode();
 			},
+
+			/** User start */
 			start: function() {
 				this.makePlace();
 				this.addControlers();
 			}
 		},
 
+		/** Additional private functions */
 		fn = ms.prototype.fn = {
+
+			/** Remove all workplace listeners */
 			cleanWorkplaceNode: function() {
 				workplace.parentNode.replaceChild(workplace.cloneNode(true), workplace);
 				workplace = document.getElementById("workplace");
 			},
+
+			/**
+			 * Include unique item to array
+			 * @param  {Array} array
+			 * @param          element
+			 * @return {Array}
+			 */
 			includeUnique: function( array, element ) {
 				if ( array.indexOf(element) === -1 ) {
 					array.push(element);
@@ -59,6 +90,12 @@ var Minesweeper = (function() {
 
 				return array;
 			},
+
+			/**
+			 * Remove duplicate items of array
+			 * @param  {Array} obj
+			 * @return {Array}
+			 */
 			unique: function( obj ) {
 				var arr = obj.concat();
 
@@ -72,37 +109,52 @@ var Minesweeper = (function() {
 
 				return arr;
 			},
+
+			/**
+			 * Get neighbors elements
+			 * @param  {Number} id
+			 * @return {Array}
+			 */
 			getNeighbors: function( id ) {
 				var childs = workplace.children,
 					rowId = Math.ceil(id / cols),
 					elems = [];
 
+				// Because in our system start position is 1
 				id = id - 1;
 
-				var addElem = function( elem, row ) {
-					if ( elem && elem.dataset[coordsRow] == (rowId + row) ) {
+				var addElem = function( elem, k ) {
+					if ( elem && elem.dataset[coordsRow] == (rowId + k) ) {
 						elems.push(elem);
 					}
 				};
 
 				for ( var k = -1; k <= 1; k++ ) {
-					addElem(childs[id + (cols*k) -1], k);
+					var l = id + (cols * k)
+
+					// Top
+					addElem(childs[l - 1], k);
+
+					// Siblings
 					if ( k !== 0 ) {
-						addElem(childs[id + (cols*k)], k);
+						addElem(childs[l], k);
 					}
-					addElem(childs[id + (cols*k) +1], k);
+
+					// Bottom
+					addElem(childs[l + 1], k);
 				}
 
 				return elems;
 			}
 		};
 
+	/** Add boxes to #workplace */
 	ms.prototype.makePlace = function() {
 		var html = "";
 
 		for ( var r = 0; r < this.rows; r++ ) {
 			for ( var c = 0; c < this.cols; c++ ) {
-				html += "<div data-"+coordsRow+"=\""+(r+1)+"\" data-"+numberKey+"=\""+(r * this.cols + c + 1)+"\" data-"+typeKey+"=\"0\"></div>"
+				html += "<div data-" + coordsRow + "=\"" + (r + 1) + "\" data-" + numberKey + "=\"" + (r * this.cols + c + 1) + "\" data-" + typeKey + "=\"0\"></div>"
 			}
 		}
 
@@ -111,7 +163,12 @@ var Minesweeper = (function() {
 		workplace.innerHTML = html;
 	};
 
+	/**
+	 * Lay mines
+	 * @param  {Array} notMines Array of forbidden places
+	 */
 	ms.prototype.layMines = function( notMines ) {
+		// 10% of all boxes are mines
 		var countOfMines = Math.ceil(this.max * 0.1);
 		var array = [];
 
@@ -124,10 +181,16 @@ var Minesweeper = (function() {
 		}
 
 		for ( var i = 0, l = array.length; i < l; i++ ) {
-			workplace.children[array[i]-1].dataset[typeKey] = typeMine;
+			workplace.children[array[i] - 1].dataset[typeKey] = typeMine;
 		}
 	};
 
+	/**
+	 * Number of surrounding mines
+	 * @private
+	 * @param  {Number} id
+	 * @return {Number}
+	 */
 	var numberOfNeighboringMine = function( id ) {
 		var neighbors = fn.getNeighbors(id);
 		var count = 0;
@@ -141,6 +204,10 @@ var Minesweeper = (function() {
 		return count;
 	};
 
+	/**
+	 * Open zero elements
+	 * @param  {Number} id Identifier of start position to open zero
+	 */
 	ms.prototype.openZero = function( id ) {
 		var zero = [];
 		var around = [];
@@ -161,10 +228,11 @@ var Minesweeper = (function() {
 
 		openAll(id);
 
-		ids = fn.unique([].concat(zero, around));
+		// Need open all elems by ids
+		var ids = fn.unique([].concat(zero, around));
 
 		for ( var i = 0, l = ids.length; i < l; i++ ) {
-			var elem = workplace.children[ids[i]-1];
+			var elem = workplace.children[ids[i] - 1];
 			var count = numberOfNeighboringMine(ids[i]);
 
 			if ( count != 0 ) {
@@ -176,7 +244,8 @@ var Minesweeper = (function() {
 		}
 	};
 
-	ms.prototype.openMine = function( id ) {
+	/** User opened mines */
+	ms.prototype.openMines = function( id ) {
 		var nodes = workplace.querySelectorAll("[data-" + typeKey + "=mine" + "]");
 
 		for ( var i = 0, l = nodes.length; i < l; i++ ) {
@@ -186,13 +255,15 @@ var Minesweeper = (function() {
 		this.lose();
 	};
 
+	/** Check count of opened or flagged boxes */
 	ms.prototype.checkCount = function() {
 		this.count = workplace.querySelectorAll("." + cssClass.opened + ", ." + cssClass.flagged).length;
 
 		if ( this.count >= this.max - 1 ) {
-			var mines = workplace.querySelectorAll("."+cssClass.flagged);
+			var mines = workplace.querySelectorAll("." + cssClass.flagged);
 			var isWin = true;
 
+			// Check correct flagged
 			for ( var i = 0, l = mines.length; i < l; i++ ) {
 				if ( mines[i].dataset[typeKey] !== typeMine ) {
 					isWin = false;
@@ -206,12 +277,14 @@ var Minesweeper = (function() {
 		}
 	};
 
+	/** Add listeners to #workplace */
 	ms.prototype.addControlers = function() {
 		var that = this,
 			openBox = function( e ) {
 				var elem = e.target,
 					id = parseInt(elem.dataset[numberKey]);
 
+				// Avoid mines on first click
 				if ( that.firstClick ) {
 					that.layMines([].concat(fn.getNeighbors(id), id));
 					that.firstClick = false;
@@ -222,7 +295,7 @@ var Minesweeper = (function() {
 				}
 
 				if ( elem.dataset[typeKey] === typeMine ) {
-					that.openMine(id);
+					that.openMines();
 
 				} else {
 					var count = numberOfNeighboringMine(id);
@@ -241,14 +314,15 @@ var Minesweeper = (function() {
 			timerWait,
 			isWait = false,
 			waited = function() {
-				clearTimeout(timerWait);
 				isWait = true;
+				clearTimeout(timerWait);
 				this.classList.toggle(cssClass.flagged);
 				that.checkCount();
 			},
 			mouseup = function( e ) {
 				e.preventDefault();
 				e.stopPropagation();
+
 				clearTimeout(timerWait);
 				if ( isWait === false ) {
 					openBox(e);
@@ -258,12 +332,14 @@ var Minesweeper = (function() {
 			mousedown = function( e ) {
 				e.preventDefault();
 				e.stopPropagation();
+
 				timerWait = setTimeout(waited.bind(e.target), 200);
 				return false
 			},
 			contextmenu = function( e ) {
 				e.preventDefault();
 				e.stopPropagation();
+
 				waited.call(e.target);
 			};
 
@@ -275,6 +351,11 @@ var Minesweeper = (function() {
 		workplace.addEventListener("touchstart", mousedown, false);
 	};
 
+	/**
+	 * Refresh game
+	 * @param  {Array}  coords
+	 * @param  {Number} smallSize
+	 */
 	ms.prototype.refresh = function( coords, smallSize ) {
 		fn.cleanWorkplaceNode();
 		initialize.call(this, coords, smallSize);
@@ -285,4 +366,5 @@ var Minesweeper = (function() {
 	ms.prototype.win = action.win;
 
 	return ms;
-}());
+
+}( document ));
