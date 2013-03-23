@@ -39,7 +39,32 @@ footer {
 
 section {
     margin: 40px 0 0;
+    position: relative;
     }
+
+#message {
+    width: 100px;
+    padding: 10px;
+    position: absolute;
+    top: -65px;
+    left: 50%;
+    margin-left: -61px;
+
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0 0 75px rgba(0, 0, 0, .5);
+    border:1px solid #ccc;
+    cursor: pointer;
+
+    text-align: center;
+    }
+    #message:after {
+        display: block;
+        content: "Click to regame";
+        color: #aaa;
+        font-size: 10px;
+        text-decoration: underline;
+        }
 
 #workplace {
     margin: auto;

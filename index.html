@@ -15,6 +15,7 @@
     </header>
     <section>
       <div id="workplace"></div>
+      <div id="message" style="display: none;">You are win!</div>
     </section>
     <footer>
       <div class="description">Use hash to change size (ex. <a href="#7-7">#7-7</a>)</div>
@@ -42,6 +43,34 @@ var hashChanged = function() {
 };
 
 window.addEventListener("hashchange", hashChanged, false);
+
+var messageBlock = document.getElementById("message");
+messageBlock.style.display = "none";
+
+var message = function( text ) {
+  messageBlock.innerHTML = text;
+  messageBlock.style.display = "block";
+  minesweeper.fn.cleanWorkplaceNode();
+};
+
+var hideMessage = function() {
+  messageBlock.style.display = "none";
+  if ( loc.hash ) {
+    refreshMinesweeper(loc.hash);
+  } else {
+    minesweeper.refresh([width, height], boxSizePx);
+  }
+};
+
+messageBlock.addEventListener("click", hideMessage, false);
+
+minesweeper.action.lost = function() {
+  message("Game over!")
+};
+
+minesweeper.action.won = function() {
+  message("You are win!")
+};
     </script>
   </body>
 </html>
