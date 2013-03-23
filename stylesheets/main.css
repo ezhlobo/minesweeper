@@ -1,4 +1,4 @@
-html, body, div, header, section, a {
+html, body, div, header, section, footer, a {
     margin: 0;
     padding: 0;
     border: 0;
@@ -6,7 +6,7 @@ html, body, div, header, section, a {
     font: inherit;
     vertical-align: baseline;
     }
-header, section {
+header, section, footer {
     display: block;
     }
 body {
@@ -25,12 +25,16 @@ a:hover {
     color: #077b00;
     }
 
-header {
+header, footer {
     margin: 20px 0;
     padding: 0 10px;
     text-align: center;
     color: #ccc;
     text-shadow: 1px 1px 0 #fff;
+    }
+
+footer {
+    padding-top: 10px;
     }
 
 section {

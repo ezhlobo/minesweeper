@@ -16,6 +16,32 @@
     <section>
       <div id="workplace"></div>
     </section>
+    <footer>
+      <div class="description">Use hash to change size (ex. <a href="#7-7">#7-7</a>)</div>
+    </footer>
+
     <script src="https://raw.github.com/EvgenyZhlobo/minesweeper/master/main.js"></script>
+    <script>
+var
+  loc = window.location,
+  width = 5,
+  height = 5,
+  boxSizePx = 30,
+  minesweeper = new Minesweeper([width, height], boxSizePx);
+
+var refreshMinesweeper = function( string ) {
+  minesweeper.refresh(string.substr(1).split("-"), boxSizePx);
+};
+
+if ( loc.hash ) {
+  refreshMinesweeper(loc.hash);
+}
+
+var hashChanged = function() {
+  refreshMinesweeper(loc.hash);
+};
+
+window.addEventListener("hashchange", hashChanged, false);
+    </script>
   </body>
 </html>
