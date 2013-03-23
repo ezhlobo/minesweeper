@@ -4,18 +4,22 @@
  */
 var Minesweeper = (function() {
 
-	function ms( coords, smallSize ) {
-		cols = this.cols = coords[0];
-		this.rows = coords[1];
-		this.max = this.cols * this.rows;
-		this.count = 0;
-		this.smallSize = smallSize;
-		this.firstClick = true;
-
-		this.start();
-	}
-
 	var
+		initialize = function( coords, smallSize ) {
+			cols = this.cols = coords[0];
+			this.rows = coords[1];
+			this.max = this.cols * this.rows;
+			this.count = 0;
+			this.smallSize = smallSize;
+			this.firstClick = true;
+
+			this.start();
+		},
+
+		ms = function( coords, smallSize ) {
+			initialize.call(this, coords, smallSize);
+		},
+
 		cols = 0,
 		coordsRow = "row",
 		typeKey = "type",
@@ -31,11 +35,11 @@ var Minesweeper = (function() {
 		action = ms.prototype.action = {
 			gameOver: function() {
 				alert("Game Over!");
-				workplace.parentNode.replaceChild(workplace.cloneNode(true), workplace);
+				fn.cleanWorkplaceNode();
 			},
 			win: function() {
 				alert("You win!");
-				workplace.parentNode.replaceChild(workplace.cloneNode(true), workplace);
+				fn.cleanWorkplaceNode();
 			},
 			start: function() {
 				this.makePlace();
@@ -44,6 +48,10 @@ var Minesweeper = (function() {
 		},
 
 		fn = ms.prototype.fn = {
+			cleanWorkplaceNode: function() {
+				workplace.parentNode.replaceChild(workplace.cloneNode(true), workplace);
+				workplace = document.getElementById("workplace");
+			},
 			includeUnique: function( array, element ) {
 				if ( array.indexOf(element) === -1 ) {
 					array.push(element);
@@ -268,17 +276,8 @@ var Minesweeper = (function() {
 	};
 
 	ms.prototype.refresh = function( coords, smallSize ) {
-		cols = this.cols = coords[0];
-		this.rows = coords[1];
-		this.max = this.cols * this.rows;
-		this.count = 0;
-		this.smallSize = smallSize;
-		this.firstClick = true;
-
-		workplace.parentNode.replaceChild(workplace.cloneNode(true), workplace);
-		workplace = document.getElementById("workplace");
-
-		this.start();
+		fn.cleanWorkplaceNode();
+		initialize.call(this, coords, smallSize);
 	};
 
 	ms.prototype.start = action.start;
