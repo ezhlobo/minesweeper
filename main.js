@@ -20,7 +20,7 @@ var Minesweeper = (function( document ) {
 			this.smallSize = smallSize;
 			this.firstClick = true;
 
-			this.start();
+			this.action.start.call(this);
 		},
 
 		/**
@@ -44,109 +44,109 @@ var Minesweeper = (function( document ) {
 			flagged: "flagged"
 		},
 
-		workplace = document.getElementById("workplace"),
+		workplace = document.getElementById("workplace");
 
-		/** Game actions */
-		action = ms.prototype.action = {
+	/** Game actions */
+	ms.prototype.action = {
 
-			/** User lost */
-			gameOver: function() {
-				alert("Game Over!");
-				fn.cleanWorkplaceNode();
-			},
-
-			/** User won */
-			win: function() {
-				alert("You win!");
-				fn.cleanWorkplaceNode();
-			},
-
-			/** User start */
-			start: function() {
-				this.makePlace();
-				this.addControlers();
-			}
+		/** User lost */
+		lost: function() {
+			alert("Game Over!");
+			fn.cleanWorkplaceNode();
 		},
 
+		/** User won */
+		won: function() {
+			alert("You win!");
+			fn.cleanWorkplaceNode();
+		},
+
+		/** User start */
+		start: function() {
+			this.makePlace();
+			this.addControlers();
+		}
+	};
+
 		/** Additional private functions */
-		fn = ms.prototype.fn = {
+	var fn = ms.prototype.fn = {
 
-			/** Remove all workplace listeners */
-			cleanWorkplaceNode: function() {
-				workplace.parentNode.replaceChild(workplace.cloneNode(true), workplace);
-				workplace = document.getElementById("workplace");
-			},
+		/** Remove all workplace listeners */
+		cleanWorkplaceNode: function() {
+			workplace.parentNode.replaceChild(workplace.cloneNode(true), workplace);
+			workplace = document.getElementById("workplace");
+		},
 
-			/**
-			 * Include unique item to array
-			 * @param  {Array} array
-			 * @param          element
-			 * @return {Array}
-			 */
-			includeUnique: function( array, element ) {
-				if ( array.indexOf(element) === -1 ) {
-					array.push(element);
-				}
-
-				return array;
-			},
-
-			/**
-			 * Remove duplicate items of array
-			 * @param  {Array} obj
-			 * @return {Array}
-			 */
-			unique: function( obj ) {
-				var arr = obj.concat();
-
-				for ( var i = 0; i < arr.length; ++i ) {
-						for ( var j = i + 1; j < arr.length; ++j ) {
-								if ( arr[i] === arr[j] ) {
-									arr.splice(j--, 1);
-								}
-						}
-				}
-
-				return arr;
-			},
-
-			/**
-			 * Get neighbors elements
-			 * @param  {Number} id
-			 * @return {Array}
-			 */
-			getNeighbors: function( id ) {
-				var childs = workplace.children,
-					rowId = Math.ceil(id / cols),
-					elems = [];
-
-				// Because in our system start position is 1
-				id = id - 1;
-
-				var addElem = function( elem, k ) {
-					if ( elem && elem.dataset[coordsRow] == (rowId + k) ) {
-						elems.push(elem);
-					}
-				};
-
-				for ( var k = -1; k <= 1; k++ ) {
-					var l = id + (cols * k)
-
-					// Top
-					addElem(childs[l - 1], k);
-
-					// Siblings
-					if ( k !== 0 ) {
-						addElem(childs[l], k);
-					}
-
-					// Bottom
-					addElem(childs[l + 1], k);
-				}
-
-				return elems;
+		/**
+		 * Include unique item to array
+		 * @param  {Array} array
+		 * @param          element
+		 * @return {Array}
+		 */
+		includeUnique: function( array, element ) {
+			if ( array.indexOf(element) === -1 ) {
+				array.push(element);
 			}
-		};
+
+			return array;
+		},
+
+		/**
+		 * Remove duplicate items of array
+		 * @param  {Array} obj
+		 * @return {Array}
+		 */
+		unique: function( obj ) {
+			var arr = obj.concat();
+
+			for ( var i = 0; i < arr.length; ++i ) {
+					for ( var j = i + 1; j < arr.length; ++j ) {
+							if ( arr[i] === arr[j] ) {
+								arr.splice(j--, 1);
+							}
+					}
+			}
+
+			return arr;
+		},
+
+		/**
+		 * Get neighbors elements
+		 * @param  {Number} id
+		 * @return {Array}
+		 */
+		getNeighbors: function( id ) {
+			var childs = workplace.children,
+				rowId = Math.ceil(id / cols),
+				elems = [];
+
+			// Because in our system start position is 1
+			id = id - 1;
+
+			var addElem = function( elem, k ) {
+				if ( elem && elem.dataset[coordsRow] == (rowId + k) ) {
+					elems.push(elem);
+				}
+			};
+
+			for ( var k = -1; k <= 1; k++ ) {
+				var l = id + (cols * k)
+
+				// Top
+				addElem(childs[l - 1], k);
+
+				// Siblings
+				if ( k !== 0 ) {
+					addElem(childs[l], k);
+				}
+
+				// Bottom
+				addElem(childs[l + 1], k);
+			}
+
+			return elems;
+		}
+	};
 
 	/** Add boxes to #workplace */
 	ms.prototype.makePlace = function() {
@@ -252,7 +252,7 @@ var Minesweeper = (function( document ) {
 			nodes[i].classList.add(cssClass.opened);
 		}
 
-		this.lose();
+		this.action.lost();
 	};
 
 	/** Check count of opened or flagged boxes */
@@ -272,7 +272,7 @@ var Minesweeper = (function( document ) {
 			}
 
 			if ( isWin ) {
-				this.win();
+				this.action.won();
 			}
 		}
 	};
@@ -360,10 +360,6 @@ var Minesweeper = (function( document ) {
 		fn.cleanWorkplaceNode();
 		initialize.call(this, coords, smallSize);
 	};
-
-	ms.prototype.start = action.start;
-	ms.prototype.lose = action.gameOver;
-	ms.prototype.win = action.win;
 
 	return ms;
 
