@@ -10,6 +10,8 @@ var Minesweeper = (function() {
 		this.max = this.cols * this.rows;
 		this.count = 0;
 		this.smallSize = smallSize;
+		this.firstClick = true;
+
 		this.start();
 	}
 
@@ -198,14 +200,13 @@ var Minesweeper = (function() {
 
 	ms.prototype.addControlers = function() {
 		var that = this,
-			firstClick = true,
 			openBox = function( e ) {
 				var elem = e.target,
 					id = parseInt(elem.dataset[numberKey]);
 
-				if ( firstClick ) {
+				if ( that.firstClick ) {
 					that.layMines([].concat(fn.getNeighbors(id), id));
-					firstClick = false;
+					that.firstClick = false;
 				}
 
 				if ( elem.classList.contains(cssClass.flagged) ) {
@@ -264,6 +265,20 @@ var Minesweeper = (function() {
 
 		workplace.addEventListener("touchend", mouseup, false);
 		workplace.addEventListener("touchstart", mousedown, false);
+	};
+
+	ms.prototype.refresh = function( coords, smallSize ) {
+		cols = this.cols = coords[0];
+		this.rows = coords[1];
+		this.max = this.cols * this.rows;
+		this.count = 0;
+		this.smallSize = smallSize;
+		this.firstClick = true;
+
+		workplace.parentNode.replaceChild(workplace.cloneNode(true), workplace);
+		workplace = document.getElementById("workplace");
+
+		this.start();
 	};
 
 	ms.prototype.start = action.start;
