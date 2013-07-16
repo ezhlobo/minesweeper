@@ -1,366 +1,139 @@
-/**
- * Minesweeper
- * @class
- */
-var Minesweeper = (function( document ) {
+(function( window ) {
 
 	var
+		_proto = "prototype",
 
-		/**
-		 * Start game
-		 * @param {Array}  coords    Width and height
-		 * @param {Number} smallSize Size one box
-		 */
-		initialize = function( coords, smallSize ) {
-			cols = this.cols = coords[0];
-			this.rows = coords[1];
-			this.max = this.cols * this.rows;
-			// Count of opened or flagged boxes
-			this.count = 0;
-			this.smallSize = smallSize;
-			this.firstClick = true;
+		extend = function( obj, target ) {
+			var key;
 
-			this.action.start.call(this);
-		},
-
-		/**
-		 * @constructor
-		 * @param {Array}  coords    Width and height
-		 * @param {Number} smallSize Size one box
-		 */
-		ms = function( coords, smallSize ) {
-			initialize.call(this, coords, smallSize);
-		},
-
-		/** @private */
-		cols = 0,
-
-		coordsRow = "row",
-		typeKey = "type",
-		typeMine = "mine",
-		numberKey = "number",
-		cssClass = {
-			opened: "opened",
-			flagged: "flagged"
-		},
-
-		workplace = document.getElementById("workplace");
-
-	/** Game actions */
-	ms.prototype.action = {
-
-		/** User lost */
-		lost: function() {
-			alert("Game Over!");
-			fn.cleanWorkplaceNode();
-		},
-
-		/** User won */
-		won: function() {
-			alert("You win!");
-			fn.cleanWorkplaceNode();
-		},
-
-		/** User start */
-		start: function() {
-			this.makePlace();
-			this.addControlers();
-		}
-	};
-
-		/** Additional private functions */
-	var fn = ms.prototype.fn = {
-
-		/** Remove all workplace listeners */
-		cleanWorkplaceNode: function() {
-			workplace.parentNode.replaceChild(workplace.cloneNode(true), workplace);
-			workplace = document.getElementById("workplace");
-		},
-
-		/**
-		 * Include unique item to array
-		 * @param  {Array} array
-		 * @param          element
-		 * @return {Array}
-		 */
-		includeUnique: function( array, element ) {
-			if ( array.indexOf(element) === -1 ) {
-				array.push(element);
-			}
-
-			return array;
-		},
-
-		/**
-		 * Remove duplicate items of array
-		 * @param  {Array} obj
-		 * @return {Array}
-		 */
-		unique: function( obj ) {
-			var arr = obj.concat();
-
-			for ( var i = 0; i < arr.length; ++i ) {
-					for ( var j = i + 1; j < arr.length; ++j ) {
-							if ( arr[i] === arr[j] ) {
-								arr.splice(j--, 1);
-							}
-					}
-			}
-
-			return arr;
-		},
-
-		/**
-		 * Get neighbors elements
-		 * @param  {Number} id
-		 * @return {Array}
-		 */
-		getNeighbors: function( id ) {
-			var childs = workplace.children,
-				rowId = Math.ceil(id / cols),
-				elems = [];
-
-			// Because in our system start position is 1
-			id = id - 1;
-
-			var addElem = function( elem, k ) {
-				if ( elem && elem.dataset[coordsRow] == (rowId + k) ) {
-					elems.push(elem);
+			for ( key in target ) {
+				if ( target.hasOwnProperty( key ) ) {
+					obj[ key ] = target[ key ];
 				}
+			}
+
+			return obj;
+		};
+
+	window.minesweeper = window.minesweeper || (function() {
+
+		var
+			txt = {
+				classOpened: "openned",
+				classFlagged: "flagged",
+				attrRow: "data-row",
+				attrCol: "data-col",
+				attrId: "data-id"
 			};
 
-			for ( var k = -1; k <= 1; k++ ) {
-				var l = id + (cols * k)
+		function minesweeper( elementId, opts ) {
+			var that = this;
 
-				// Top
-				addElem(childs[l - 1], k);
+			// Merge new options with defaults
+			extend( that.opts, opts );
 
-				// Siblings
-				if ( k !== 0 ) {
-					addElem(childs[l], k);
-				}
+			that.workplace = window.document.getElementById( elementId );
 
-				// Bottom
-				addElem(childs[l + 1], k);
-			}
-
-			return elems;
-		}
-	};
-
-	/** Add boxes to #workplace */
-	ms.prototype.makePlace = function() {
-		var html = "";
-
-		for ( var r = 0; r < this.rows; r++ ) {
-			for ( var c = 0; c < this.cols; c++ ) {
-				html += "<div data-" + coordsRow + "=\"" + (r + 1) + "\" data-" + numberKey + "=\"" + (r * this.cols + c + 1) + "\" data-" + typeKey + "=\"0\"></div>"
-			}
+			that.start();
 		}
 
-		workplace.style.width = this.smallSize * this.cols + "px";
-		workplace.style.height = this.smallSize * this.rows + "px";
-		workplace.innerHTML = html;
-	};
+		// Default options
+		minesweeper[ _proto ].opts = {
+			count: 6,
+			oneCellSize: 30,
+			longClickTime: 200
+		};
 
-	/**
-	 * Lay mines
-	 * @param  {Array} notMines Array of forbidden places
-	 */
-	ms.prototype.layMines = function( notMines ) {
-		// 10% of all boxes are mines
-		var countOfMines = Math.ceil(this.max * 0.1);
-		var array = [];
+		minesweeper[ _proto ].start = function() {
+			var that = this;
 
-		while ( array.length < countOfMines ) {
-			var id = Math.floor(Math.random() * this.max) + 1;
+			that.load.place    .call( that );
+			that.load.handlers .call( that );
+		};
 
-			if ( notMines.indexOf(id) === -1 ) {
-				fn.includeUnique(array, id);
-			}
-		}
+		minesweeper[ _proto ].load = {
+			place: function() {
+				var that = this;
 
-		for ( var i = 0, l = array.length; i < l; i++ ) {
-			workplace.children[array[i] - 1].dataset[typeKey] = typeMine;
-		}
-	};
+				var count = that.opts.count;
+				var html = "";
+				var k = 0;
 
-	/**
-	 * Number of surrounding mines
-	 * @private
-	 * @param  {Number} id
-	 * @return {Number}
-	 */
-	var numberOfNeighboringMine = function( id ) {
-		var neighbors = fn.getNeighbors(id);
-		var count = 0;
+				for ( var row = 1; row <= count; row++ ) {
+					for ( var col = 1; col <= count; col++ ) {
+						html += "<div " + txt.attrRow + "='" + row + "' " + txt.attrCol + "='" + col + "' " + txt.attrId + "='" + k++ + "'></div>\n";
+					}
+	 			}
 
-		for ( var i = 0, l = neighbors.length; i < l; i++ ) {
-			if ( neighbors[i].dataset[typeKey] === typeMine ) {
-				count++;
-			}
-		}
+	 			that.workplace.innerHTML = html;
+	 			that.workplace.style.width = that.opts.oneCellSize * count + "px";
+			},
+			handlers: function() {
+				var that = this;
+				var workplace = that.workplace;
 
-		return count;
-	};
+				var timerWait;
+				var isWaited = false;
 
-	/**
-	 * Open zero elements
-	 * @param  {Number} id Identifier of start position to open zero
-	 */
-	ms.prototype.openZero = function( id ) {
-		var zero = [];
-		var around = [];
+				var waited = function() {
+					isWaited = true;
+					clearTimeout( timerWait );
 
-		var openAll = function( id ) {
-			zero.push(id);
+					that.actions.flag.call( that, this );
+				};
 
-			var neighbors = fn.getNeighbors(id);
-			for ( var i = 0, l = neighbors.length; i < l; i++ ) {
-				var id = neighbors[i].dataset[numberKey];
-				fn.includeUnique(around, id);
+				var mouseup = function( e ) {
+					e.preventDefault();
+					e.stopPropagation();
 
-				if ( numberOfNeighboringMine(id) === 0 && zero.indexOf(id) == -1 ) {
-					openAll(id);
-				}
+					clearTimeout( timerWait );
+
+					if ( isWaited === false ) {
+						that.actions.open.call( that, e.target );
+					}
+					isWaited = false;
+				};
+				var mousedown = function( e ) {
+					e.preventDefault();
+					e.stopPropagation();
+
+					timerWait = setTimeout( waited.bind( e.target ), that.opts.longClickTime );
+
+					return false;
+				};
+				var contextmenu = function( e ) {
+					e.preventDefault();
+					e.stopPropagation();
+
+					waited.call( e.target );
+				};
+
+				workplace.addEventListener( "mouseup", mouseup, false );
+				workplace.addEventListener( "mousedown", mousedown, false );
+				workplace.addEventListener( "contextmenu", contextmenu, false );
+
+				// @TODO: Add touch events
+			},
+			mines: function() {}
+		};
+
+		minesweeper[ _proto ].actions = {
+			open: function( elem ) {
+				// @TODO
+				debug("actions.open")
+			},
+			flag: function( elem ) {
+				// @TODO
+				debug("actions.flag")
 			}
 		};
 
-		openAll(id);
-
-		// Need open all elems by ids
-		var ids = fn.unique([].concat(zero, around));
-
-		for ( var i = 0, l = ids.length; i < l; i++ ) {
-			var elem = workplace.children[ids[i] - 1];
-			var count = numberOfNeighboringMine(ids[i]);
-
-			if ( count != 0 ) {
-				elem.innerHTML = count;
-			}
-
-			elem.classList.add(cssClass.opened);
-			elem.classList.remove(cssClass.flagged);
-		}
-	};
-
-	/** User opened mines */
-	ms.prototype.openMines = function( id ) {
-		var nodes = workplace.querySelectorAll("[data-" + typeKey + "=mine" + "]");
-
-		for ( var i = 0, l = nodes.length; i < l; i++ ) {
-			nodes[i].classList.add(cssClass.opened);
+		function debug ( txt ) {
+			console.log( "minesweeper." + txt );
 		}
 
-		this.action.lost();
-	};
+		return minesweeper;
 
-	/** Check count of opened or flagged boxes */
-	ms.prototype.checkCount = function() {
-		this.count = workplace.querySelectorAll("." + cssClass.opened + ", ." + cssClass.flagged).length;
+	})();
 
-		if ( this.count >= this.max - 1 ) {
-			var mines = workplace.querySelectorAll("." + cssClass.flagged);
-			var isWin = true;
-
-			// Check correct flagged
-			for ( var i = 0, l = mines.length; i < l; i++ ) {
-				if ( mines[i].dataset[typeKey] !== typeMine ) {
-					isWin = false;
-					break;
-				}
-			}
-
-			if ( isWin ) {
-				this.action.won();
-			}
-		}
-	};
-
-	/** Add listeners to #workplace */
-	ms.prototype.addControlers = function() {
-		var that = this,
-			openBox = function( e ) {
-				var elem = e.target,
-					id = parseInt(elem.dataset[numberKey]);
-
-				// Avoid mines on first click
-				if ( that.firstClick ) {
-					that.layMines([].concat(fn.getNeighbors(id), id));
-					that.firstClick = false;
-				}
-
-				if ( elem.classList.contains(cssClass.flagged) ) {
-					return;
-				}
-
-				if ( elem.dataset[typeKey] === typeMine ) {
-					that.openMines();
-
-				} else {
-					var count = numberOfNeighboringMine(id);
-
-					if ( count == 0 ) {
-						that.openZero(id);
-
-					} else {
-						elem.innerHTML = count;
-					}
-
-					elem.classList.add(cssClass.opened);
-					that.checkCount();
-				}
-			},
-			timerWait,
-			isWait = false,
-			waited = function() {
-				isWait = true;
-				clearTimeout(timerWait);
-				this.classList.toggle(cssClass.flagged);
-				that.checkCount();
-			},
-			mouseup = function( e ) {
-				e.preventDefault();
-				e.stopPropagation();
-
-				clearTimeout(timerWait);
-				if ( isWait === false ) {
-					openBox(e);
-				}
-				isWait = false;
-			},
-			mousedown = function( e ) {
-				e.preventDefault();
-				e.stopPropagation();
-
-				timerWait = setTimeout(waited.bind(e.target), 200);
-				return false
-			},
-			contextmenu = function( e ) {
-				e.preventDefault();
-				e.stopPropagation();
-
-				waited.call(e.target);
-			};
-
-		workplace.addEventListener("mouseup", mouseup, false);
-		workplace.addEventListener("mousedown", mousedown, false);
-		workplace.addEventListener("contextmenu", contextmenu, false);
-
-		workplace.addEventListener("touchend", mouseup, false);
-		workplace.addEventListener("touchstart", mousedown, false);
-	};
-
-	/**
-	 * Refresh game
-	 * @param  {Array}  coords
-	 * @param  {Number} smallSize
-	 */
-	ms.prototype.refresh = function( coords, smallSize ) {
-		fn.cleanWorkplaceNode();
-		initialize.call(this, coords, smallSize);
-	};
-
-	return ms;
-
-}( document ));
+})( window );
